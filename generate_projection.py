@@ -76,8 +76,9 @@ def get_projection_report(cout_bien, superficie_bien_m2):
 
     prix_m2_avant = cout_bien/superficie_bien_m2
     prix_m2_apres = cout_sans_notaire/superficie_bien_m2
-    ecart_prix_m2_prix_moyen_avant = 100*(prix_m2_avant-PRIX_MOYEN_APPART_M2)/PRIX_MOYEN_APPART_M2
-    ecart_prix_m2_prix_moyen_apres = 100*(prix_m2_apres-PRIX_MOYEN_APPART_M2)/PRIX_MOYEN_APPART_M2
+    prix_moyen_m2 = PRIX_MOYEN_APPART_M2[VILLE]
+    ecart_prix_m2_prix_moyen_avant = 100*(prix_m2_avant-prix_moyen_m2)/prix_moyen_m2
+    ecart_prix_m2_prix_moyen_apres = 100*(prix_m2_apres-prix_moyen_m2)/prix_moyen_m2
 
     for combinaison in TOUTES_COMBINAISONS:
         doit_payer_impot = False
