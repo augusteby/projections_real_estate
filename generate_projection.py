@@ -157,7 +157,7 @@ if __name__=='__main__':
     cout_du_bien = 120000
     superficie_bien_m2 = 40
 
-    projection_df = get_projection_report(cout_du_bien)
+    projection_df = get_projection_report(cout_du_bien, superficie_bien_m2)
     print(projection_df[projection_df['cash_flow_annuel']>=0])
 
     projection_df.to_csv('projection_report.csv', index=False)
