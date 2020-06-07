@@ -4,10 +4,10 @@ import numpy as np
 
 
 APPORTS_TAUX = [0.1, 0.15, 0.20, 0.25]
-TAUX_OCCUPATION = np.arange(0.5, 1.0, 0.1)
+TAUX_OCCUPATION = np.arange(0.5, 1.0, 0.05)
 RENDEMENT_BRUT_TAUX = np.arange(0.035, 0.08, 0.003)
 ANNEES_CREDIT_LIST = [20, 25]
-TAUX_INTERET = np.arange(0.015, 0.02, 0.001)
+TAUX_INTERET = np.arange(0.011, 0.02, 0.001)
 VARIABLES_TO_COMBINE = [APPORTS_TAUX, TAUX_OCCUPATION, RENDEMENT_BRUT_TAUX, ANNEES_CREDIT_LIST,
                         TAUX_INTERET]
 
@@ -65,7 +65,7 @@ def get_projection_report(cout_bien, superficie_bien_m2):
     amortissements = amortissement_bien_annuel + AMORTISSEMENT_MOBILIER_ANNUEL + AMORTISSEMENT_TRAVAUX_ANNUEL
 
     projection_dic = {'cout_operation': [],'rendement': [], 'apport_banque_taux': [],
-                      'taux_interet': [], 'loyer_mensuel': [],
+                      'taux_interet': [], 'annees_emprunt': [],'loyer_mensuel': [],
                       'cash_flow_annuel': [], 'doit_payer_impot': [],
                       'revenus_annuel': [], 'couts_annuel': [], 'taux_occupation': [],
                       'apport_total': [],
@@ -147,6 +147,7 @@ def get_projection_report(cout_bien, superficie_bien_m2):
             projection_dic['rendement'].append(rendement_i)
             projection_dic['apport_banque_taux'].append(apport_taux_i)
             projection_dic['taux_interet'].append(taux_interet)
+            projection_dic['annees_emprunt'].append(annees_credit)
             projection_dic['loyer_mensuel'].append(loyer_mensuel)
             projection_dic['cash_flow_annuel'].append(cash_flow)
             projection_dic['doit_payer_impot'].append(doit_payer_impot)
