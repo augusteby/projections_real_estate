@@ -3,7 +3,7 @@
 ## Hypothèses:
 * Opération d'investissement locatif menée avec IL (Investissement Locatif)
 * Bien trouvé hors agence (off-market)
-* L'emprunt se fait sur le coût sans les frais de notaire (acquisition + plan + travaux + meubles)
+* L'emprunt se fait sur le coût sans les frais de notaire (acquisition + plan + travaux) et sans les meubles
 * Changement de locataire chaque année
 * Fiscalité LMNP
 
