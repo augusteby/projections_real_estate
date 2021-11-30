@@ -9,11 +9,11 @@ import os
 
 APPORTS_TAUX = [0.1]
 TAUX_OCCUPATION = np.arange(0.7, 0.9, 0.1)
-ECART_A_LA_MOYENNE_LOYER = np.arange(-0.1, 0.5, 0.1)
+ECART_A_LA_MOYENNE_LOYER = np.arange(-0.1, 1, 0.1)
 ECART_A_LA_MOYENNE_CHARGES_COPRO = np.arange(-0.2, 0.3, 0.1)
-ECART_A_LA_MOYENNE_PRIX_M2_AVANT_TRAVAUX = np.arange(-0.2, 0.3, 0.1)
+ECART_A_LA_MOYENNE_PRIX_M2_AVANT_TRAVAUX = np.arange(-0.5, 0.3, 0.1)
 ANNEES_CREDIT_LIST = [20]
-TAUX_INTERET = np.arange(0.015, 0.02, 0.005)
+TAUX_INTERET = np.arange(0.012, 0.02, 0.005)
 OFF_MARKET = [True, False]
 VARIABLES_TO_COMBINE = [APPORTS_TAUX, TAUX_OCCUPATION, ECART_A_LA_MOYENNE_LOYER, ANNEES_CREDIT_LIST,
                         TAUX_INTERET, ECART_A_LA_MOYENNE_PRIX_M2_AVANT_TRAVAUX, ECART_A_LA_MOYENNE_CHARGES_COPRO,
@@ -22,23 +22,26 @@ VARIABLES_TO_COMBINE = [APPORTS_TAUX, TAUX_OCCUPATION, ECART_A_LA_MOYENNE_LOYER,
 # source taxe fonciere: https://www.tacotax.fr/guides/impots-locaux/taxe-fonciere/methode-de-calcul
 TAXE_FONCIERE_TAUX = {'reims':0.2926, 'saint_denis':0.2265, 'paris':0.0837, 'marseille': 0.2402,
                       'strasbourg': 0.2249, 'rennes':0.2576, 'tinqueux': 0.155, 'bezannes': 0.2277}
+TAXE_FONCIERE = 380
 
-PRIX_M2_MOYEN = {'reims': 2244, 'tinqueux': 2267, 'bezannes': 3164}
-LOYER_M2_MOYEN = {'reims': 11.6, 'tinqueux': 12.6, 'bezannes': 12.4}
+PRIX_M2_MOYEN = {'reims': 2350, 'tinqueux': 2267, 'bezannes': 3164}
+LOYER_M2_MOYEN = {'reims': 11, 'tinqueux': 12.6, 'bezannes': 12.4}
 
-COUT_MEUBLES = 7000
-COUT_TRAVAUX = 11000
+COUT_MEUBLES = 7500
+COUT_TRAVAUX = 32000
 COUT_PLAN = 2000
 
 
-FRAIS_NOTAIRE_TAUX = 0.075
+FRAIS_NOTAIRE_TAUX = 0.08
 FRAIS_RECHERCHE_LOCATAIRE = 0
 FRAIS_AGENCE_GESTION_TAUX = 0.05
 HONORAIRES_IL_TAUX = 0.084
 
 COUT_EXPERT_COMPTABLE_ANNUEL = 300
 # source charges copro: https://www.meilleurecopro.com/charges-de-copropriete/
-CHARGES_COPRO_M2_ANNUEL = {'reims': 22, 'tinqueux': 20}
+CHARGES_COPRO_M2_ANNUEL = {'reims': 19.3, 'tinqueux': 20}
+
+CHARGES_COPRO_ANNUEL = 512
 
 
 ASSURANCE_PNO_ANNUEL = 150 # assurance proprietaire non occupant (https://reassurez-moi.fr/guide/assurance-habitation/pno-tarif pour des ordres de grandeur)
@@ -134,12 +137,13 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
         # https://www.tacotax.fr/guides/impots-locaux/taxe-fonciere/methode-de-calcul
         # On applique la taxe fonciere definie pour la commune a 50% de la totalite
         # du loyer annuel theorique car il s'agit ici d'une propriete batie
-        taxe_fonciere = TAXE_FONCIERE_TAUX[ville] * loyer_annuel_theorique / 2
+        taxe_fonciere = TAXE_FONCIERE
 
         assurance_gli_annuelle = ASSURANCE_GLI_ANNUEL_TAUX*loyer_annuel_theorique
         cout_assurances_annuel = ASSURANCE_PNO_ANNUEL + assurance_gli_annuelle + ASSURANCE_EMPRUNTEUR_ANNUEL
 
-        charges_copro_annuel = (1 + ecart_aux_charges_copro_moyen) * CHARGES_COPRO_M2_ANNUEL[ville] * superficie_bien_m2
+        # charges_copro_annuel = (1 + ecart_aux_charges_copro_moyen) * CHARGES_COPRO_M2_ANNUEL[ville] * superficie_bien_m2
+        charges_copro_annuel = CHARGES_COPRO_ANNUEL
         depenses_annuelles_gestion_bien = (charges_copro_annuel + frais_gestion_annuel + COUT_EXPERT_COMPTABLE_ANNUEL
                                            + cout_assurances_annuel + FRAIS_RECHERCHE_LOCATAIRE)
 
@@ -336,8 +340,8 @@ def get_one_year_older_deficit_memory(deficit_memory):
 
 
 if __name__=='__main__':
-    ville = 'tinqueux'
-    superficie_bien_m2 = 40
+    ville = 'reims'
+    superficie_bien_m2 = 38
     prix_m2_moyen_zone = PRIX_M2_MOYEN[ville]
     loyer_m2_moyen_zone = LOYER_M2_MOYEN[ville]
 
