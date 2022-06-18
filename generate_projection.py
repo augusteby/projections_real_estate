@@ -7,41 +7,40 @@ from constants import Projections, LMNP
 import os
 
 
-APPORTS_TAUX = [0.1]
+APPORTS_TAUX = [0.1, 0.15, 0.2]
 TAUX_OCCUPATION = np.arange(0.7, 0.9, 0.1)
-ECART_A_LA_MOYENNE_LOYER = np.arange(-0.1, 1, 0.1)
-ECART_A_LA_MOYENNE_CHARGES_COPRO = np.arange(-0.2, 0.3, 0.1)
-ECART_A_LA_MOYENNE_PRIX_M2_AVANT_TRAVAUX = np.arange(-0.5, 0.3, 0.1)
+ECART_A_LA_MOYENNE_LOYER = np.arange(-0.4, 0.4, 0.1)
+ECART_A_LA_MOYENNE_CHARGES_COPRO = np.arange(-0.4, 0.4, 0.1)
+ECART_A_LA_MOYENNE_PRIX_M2_AVANT_TRAVAUX = np.arange(-0.4, 0.4, 0.1)
 ANNEES_CREDIT_LIST = [20]
-TAUX_INTERET = np.arange(0.012, 0.02, 0.005)
-OFF_MARKET = [True, False]
+TAUX_INTERET = np.arange(0.015, 0.025, 0.005)
+AJOUT_TRAVAUX_EMPRUNT = [True, False]
 VARIABLES_TO_COMBINE = [APPORTS_TAUX, TAUX_OCCUPATION, ECART_A_LA_MOYENNE_LOYER, ANNEES_CREDIT_LIST,
                         TAUX_INTERET, ECART_A_LA_MOYENNE_PRIX_M2_AVANT_TRAVAUX, ECART_A_LA_MOYENNE_CHARGES_COPRO,
-                        OFF_MARKET]
+                        AJOUT_TRAVAUX_EMPRUNT]
 
 # source taxe fonciere: https://www.tacotax.fr/guides/impots-locaux/taxe-fonciere/methode-de-calcul
 TAXE_FONCIERE_TAUX = {'reims':0.2926, 'saint_denis':0.2265, 'paris':0.0837, 'marseille': 0.2402,
                       'strasbourg': 0.2249, 'rennes':0.2576, 'tinqueux': 0.155, 'bezannes': 0.2277}
 TAXE_FONCIERE = 380
 
-PRIX_M2_MOYEN = {'reims': 2350, 'tinqueux': 2267, 'bezannes': 3164}
-LOYER_M2_MOYEN = {'reims': 11, 'tinqueux': 12.6, 'bezannes': 12.4}
+TAXE_FONCIERE = 1000
 
-COUT_MEUBLES = 7500
-COUT_TRAVAUX = 32000
-COUT_PLAN = 2000
+COUT_MEUBLES = 0 #7000
+COUT_TRAVAUX = 0 #11000
+COUT_PLAN = 0 #2000
 
 
 FRAIS_NOTAIRE_TAUX = 0.08
 FRAIS_RECHERCHE_LOCATAIRE = 0
 FRAIS_AGENCE_GESTION_TAUX = 0.05
-HONORAIRES_IL_TAUX = 0.084
+
+HONORAIRES_CHASSEUR = 4500
 
 COUT_EXPERT_COMPTABLE_ANNUEL = 300
 # source charges copro: https://www.meilleurecopro.com/charges-de-copropriete/
-CHARGES_COPRO_M2_ANNUEL = {'reims': 19.3, 'tinqueux': 20}
-
-CHARGES_COPRO_ANNUEL = 512
+# CHARGES_COPRO_M2_ANNUEL = {'reims': 22}
+CHARGES_COPRO_ANNUEL = 510
 
 
 ASSURANCE_PNO_ANNUEL = 150 # assurance proprietaire non occupant (https://reassurez-moi.fr/guide/assurance-habitation/pno-tarif pour des ordres de grandeur)
@@ -67,8 +66,7 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
     """
     TOUTES_COMBINAISONS = list(itertools.product(*VARIABLES_TO_COMBINE))
 
-
-    projection_dic = {Projections.COUT_OPERATION: [],Projections.IS_OFF_MARKET: [],Projections.RENDEMENT_BRUT: [],
+    projection_dic = {Projections.COUT_OPERATION: [],Projections.RENDEMENT_BRUT: [],
                       Projections.APPORT_BANQUE: [],
                       Projections.TAUX_INTERET: [], Projections.NB_ANNEES_EMPRUNT: [], Projections.LOYER_MENSUEL: [],
                       Projections.ECART_LOYER_MOYEN: [],
@@ -79,7 +77,6 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
                       Projections.ECART_PRIX_M2_MOYEN_AVANT: [], Projections.ECART_PRIX_M2_MOYEN_APRES: [],
                       Projections.PRIX_M2_AVANT: [], Projections.PRIX_M2_APRES: [], Projections.ECART_CHARGES_COPRO_MOYEN: [],
                       Projections.PREMIERE_ANNEE_IMPOSITION: []}
-
 
     all_compta_lmnp = []
 
@@ -93,7 +90,7 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
         taux_interet = combinaison[4]
         ecart_prix_m2_prix_moyen_avant = combinaison[5]
         ecart_aux_charges_copro_moyen = combinaison[6]
-        off_market = combinaison[7]
+        ajout_travaux_emprunt = combinaison[7]
 
         prix_m2_avant = (1 + ecart_prix_m2_prix_moyen_avant) * prix_m2_moyen_zone
         cout_bien = prix_m2_avant * superficie_bien_m2
@@ -102,21 +99,27 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
         amortissement_bien_annuel = TAUX_AMORTISSEMENT_BIEN * cout_bien
         amortissements_hors_bien = AMORTISSEMENT_MOBILIER_ANNUEL + AMORTISSEMENT_TRAVAUX_ANNUEL
 
-        montant_empruntable = cout_bien + COUT_TRAVAUX + COUT_PLAN
-        cout_sans_notaire = montant_empruntable + COUT_MEUBLES
-        cout_avant_honoraires = cout_sans_notaire + frais_notaire
-        if off_market:
-            honoraires_il = 0
-        else:
-            honoraires_il = HONORAIRES_IL_TAUX * cout_avant_honoraires
+        honoraires_chasseur = HONORAIRES_CHASSEUR
 
-        cout_operation = cout_avant_honoraires + honoraires_il
+        if ajout_travaux_emprunt:
+            montant_empruntable = cout_bien + COUT_TRAVAUX + COUT_PLAN
+            cout_sans_notaire = montant_empruntable + COUT_MEUBLES
+
+            apport_banque = apport_taux_i * montant_empruntable
+            apport_total = COUT_MEUBLES + frais_notaire + apport_banque + honoraires_chasseur
+        else:
+            montant_empruntable = cout_bien
+            cout_sans_notaire = montant_empruntable + COUT_TRAVAUX + COUT_PLAN + COUT_MEUBLES
+
+            apport_banque = apport_taux_i * montant_empruntable
+            apport_total = COUT_TRAVAUX + COUT_PLAN + COUT_MEUBLES + frais_notaire + apport_banque + honoraires_chasseur
+
+        cout_avant_honoraires = cout_sans_notaire + frais_notaire
+
+        cout_operation = cout_avant_honoraires + honoraires_chasseur
 
         prix_m2_apres = cout_sans_notaire / superficie_bien_m2
         ecart_prix_m2_prix_moyen_apres = (prix_m2_apres - prix_m2_moyen_zone) / prix_m2_moyen_zone
-
-        apport_banque = apport_taux_i * montant_empruntable
-        apport_total = COUT_MEUBLES + frais_notaire + apport_banque + honoraires_il
 
         # Calcul de mortgage
         montant_emprunt = montant_empruntable - apport_banque
@@ -171,7 +174,6 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
             cash_flow_total = loyer_annuel_percu - couts_annuel_total
 
             projection_dic[Projections.COUT_OPERATION].append(cout_operation)
-            projection_dic[Projections.IS_OFF_MARKET].append(off_market)
             projection_dic[Projections.RENDEMENT_BRUT].append(rendement_brut)
             projection_dic[Projections.APPORT_BANQUE].append(apport_taux_i)
             projection_dic[Projections.TAUX_INTERET].append(taux_interet)
@@ -195,6 +197,7 @@ def get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone=None, lo
     projection_df = pd.DataFrame(projection_dic)
 
     return projection_df, all_compta_lmnp
+
 
 def get_fiscalite_lmnp_par_an(annees_credit, loyer_annuel_percu, amortissement_bien_annuel, amortissements_hors_bien,
                               charges_annuel_avant_remboursement_credit, frais_notaire, interet):
@@ -257,6 +260,7 @@ def get_fiscalite_lmnp_par_an(annees_credit, loyer_annuel_percu, amortissement_b
         # de l'amortissement du bien engendre un deficit, alors on reporte l'amortissement du bien a l'annee d'apres
         if revenus_imposables_avant_amort_bien < 0:
             deficit_depenses_reelles = np.abs(revenus_imposables_avant_amort_bien)
+
             report += amortissement_bien_annuel + deficit_depenses_reelles
             compta_annee_i[LMNP.CHARGES_TOTALES] = charges_avant_amort_bien
             compta_annee_i[LMNP.REVENUS_IMPOSABLES] = 0
@@ -296,6 +300,7 @@ def get_fiscalite_lmnp_par_an(annees_credit, loyer_annuel_percu, amortissement_b
         compta_par_an[i] = compta_annee_i
 
     return first_year_of_imposition, compta_par_an
+
 
 def get_revenus_imposables_apres_utilisation_deficit_reporte(revenus_imposables_avant_utilisation_deficit,
                                                              memoire_des_deficites):
@@ -337,13 +342,11 @@ def get_one_year_older_deficit_memory(deficit_memory):
     return deficit_memory
 
 
-
-
 if __name__=='__main__':
     ville = 'reims'
-    superficie_bien_m2 = 38
-    prix_m2_moyen_zone = PRIX_M2_MOYEN[ville]
-    loyer_m2_moyen_zone = LOYER_M2_MOYEN[ville]
+    superficie_bien_m2 = 29
+    prix_m2_moyen_zone = 2733
+    loyer_m2_moyen_zone = 12
 
     projection_df, all_compta_par_an = get_projection_report(ville, superficie_bien_m2, prix_m2_moyen_zone, loyer_m2_moyen_zone)
     projection_df_cash_flow_pos = projection_df[projection_df[Projections.CASH_FLOW_ANNUEL]>=0]
