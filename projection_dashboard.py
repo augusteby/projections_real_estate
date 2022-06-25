@@ -22,6 +22,10 @@ with st.sidebar:
 
     # pret banque
     st.header("Prêt bancaire")
+    inclure_honoraires = st.checkbox("Inclure honoraires?")
+    inclure_travaux = st.checkbox("Inclure travaux?")
+    inclure_meubles = st.checkbox("Inclure meubles?")
+
     taux_emprunt_perc = st.number_input("Taux d'emprunt (%)", value=2.0, min_value=0.0, max_value=100.0)
     taux_emprunt = taux_emprunt_perc / 100
     taux_emprunt_mensuel = pow(1 + taux_emprunt, 1/12) - 1
@@ -64,14 +68,29 @@ prix_m2 = cout_bien/superficie
 st.metric(label="Prix au m2", value=prix_m2)
 
 frais_notaire_cout = cout_bien * frais_notaire / 100
+
 apport_partie_1 = honoraires_chasseur + frais_notaire_cout + cout_plans + cout_meubles + cout_travaux
-apport_partie_2 = taux_apport * cout_bien / 100
+cout_banque = cout_bien
+
+if inclure_honoraires:
+    apport_partie_1 -= honoraires_chasseur
+    cout_banque += honoraires_chasseur
+
+if inclure_travaux:
+    apport_partie_1 -= (cout_plans + cout_travaux)
+    cout_banque += (cout_plans + cout_travaux)
+
+if inclure_meubles:
+    apport_partie_1 -= cout_meubles
+    cout_banque += cout_meubles
+
+apport_partie_2 = taux_apport * cout_banque / 100
 apport_total = apport_partie_1 + apport_partie_2
-cout_operation = cout_bien + apport_partie_1
+cout_operation = cout_banque + apport_partie_1
 st.metric(label="Coût de l'opération", value=cout_operation)
 st.metric(label="Apport total", value=apport_total)
 
-montant_emprunt = cout_bien - apport_partie_2
+montant_emprunt = cout_banque - apport_partie_2
 
 echeancier_df, remboursement_mensuel_credit = func.generate_echeancier(montant_emprunt,
                                                                        taux_emprunt_mensuel,
@@ -100,7 +119,7 @@ cout_annuel_total = charges_annuelles + apport_total / annees_credit
 
 cash_flow = loyer_annuel - charges_annuelles
 cash_flow_reel = loyer_annuel - cout_annuel_total
-st.metric(label="Cash flow mensuel (sans apport)", value=cash_flow/12)
+st.metric(label="Cash flow mensuel (sans inclusion  apport)", value=cash_flow/12)
 st.metric(label="Cash flow annuel (sans apport)", value=cash_flow)
 st.metric(label="Cash flow annuel (avec apport)", value=cash_flow_reel)
 
