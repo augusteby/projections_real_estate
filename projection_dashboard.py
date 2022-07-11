@@ -7,10 +7,10 @@ with st.sidebar:
 
     # acquisition du bien
     st.header("Acquisition du bien")
-    cout_bien = st.number_input("Coût d'acquisition (euros)", value=110000, min_value=0)
+    cout_bien = st.number_input("Coût d'acquisition (euros)", value=112500, min_value=0)
     superficie = st.number_input("Superficie (m2)", value=39, min_value=0)
     charges_copropriete = st.number_input("Charges de copropriété", value=240, min_value=0)
-    taxe_fonciere = st.number_input("Taxe foncière annuelle (euros)", value=500, min_value=0)
+    taxe_fonciere = st.number_input("Taxe foncière annuelle (euros)", value=544, min_value=0)
 
     # chasseur
     st.header("Chasseur")
@@ -18,18 +18,19 @@ with st.sidebar:
 
     # notaire
     st.header("Notaire")
-    frais_notaire = st.number_input("Frais de notaire (%)", value=8.5, min_value=0.0, max_value=100.0)
+    frais_promesse_vente = st.number_input("Honoraires de promesse de vente", value=530.0, min_value=0.0)
+    frais_notaire = st.number_input("Frais de notaire (%)", value=8.6, min_value=0.0, max_value=100.0)
 
     # pret banque
     st.header("Prêt bancaire")
     inclure_honoraires = st.checkbox("Inclure honoraires?")
-    inclure_travaux = st.checkbox("Inclure travaux?")
+    inclure_travaux = st.checkbox("Inclure travaux?", value=True)
     inclure_meubles = st.checkbox("Inclure meubles?")
 
     taux_emprunt_perc = st.number_input("Taux d'emprunt (%)", value=2.0, min_value=0.0, max_value=100.0)
     taux_emprunt = taux_emprunt_perc / 100
     taux_emprunt_mensuel = pow(1 + taux_emprunt, 1/12) - 1
-    taux_apport = st.number_input("Taux d'apport (%)", value=20.0, min_value=0.0, max_value=100.0)
+    taux_apport = st.number_input("Taux d'apport (%)", value=10.0, min_value=0.0, max_value=100.0)
     annees_credit = st.number_input("Années crédit", value=20, min_value=0, max_value=100)
 
     # assurances
@@ -42,11 +43,11 @@ with st.sidebar:
     st.header("Préparation de l'appartement")
     cout_plans = st.number_input("Coût des plans", value=0, min_value=0)
     cout_meubles = st.number_input("Coût des meubles", value=3000, min_value=0)
-    cout_travaux = st.number_input("Coût des travaux", value=5000, min_value=0)
+    cout_travaux = st.number_input("Coût des travaux", value=11583, min_value=0)
 
     # mise en location
     st.header("Mise en location")
-    loyer_mensuel = st.number_input("Loyer mensuel (euros)", value=600)
+    loyer_mensuel = st.number_input("Loyer mensuel (euros)", value=650)
     taux_occupation = st.number_input("Taux d'occupation (%)", value=90.0, min_value=0.0, max_value=100.0)
     frais_recherche_locataire = st.number_input("Frais de recherche du locataire", value=415, min_value=0)
     frais_gestion_taux = st.number_input("Frais de gestion locative (%)", value=6.5, min_value=0.0, max_value=100.0)
@@ -68,8 +69,9 @@ prix_m2 = cout_bien/superficie
 st.metric(label="Prix au m2", value=prix_m2)
 
 frais_notaire_cout = cout_bien * frais_notaire / 100
+frais_notaire_total = frais_notaire_cout + frais_promesse_vente
 
-apport_partie_1 = honoraires_chasseur + frais_notaire_cout + cout_plans + cout_meubles + cout_travaux
+apport_partie_1 = honoraires_chasseur + frais_notaire_total + cout_plans + cout_meubles + cout_travaux
 cout_banque = cout_bien
 
 if inclure_honoraires:
